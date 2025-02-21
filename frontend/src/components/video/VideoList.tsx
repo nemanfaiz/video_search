@@ -1,15 +1,27 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { Video } from '@/types/video'
-import { formatDuration, timeAgo } from '@/lib/utils/format'
+import { formatDuration } from '@/lib/utils/format'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { getThumbnailUrl, fetchVideoList } from '@/lib/api/videos'
 
 interface VideoListProps {
   limit?: number
   userId?: string
   showThumbnail?: boolean
+}
+
+const formatVideoDate = (dateString: string): string => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', { 
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 
 export function VideoList({ 
@@ -21,12 +33,14 @@ export function VideoList({
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchVideos = async () => {
+    const loadVideos = async () => {
       try {
-        // Replace with actual API call
-        const response = await fetch(`/api/videos?limit=${limit}${userId ? `&userId=${userId}` : ''}`)
-        const data = await response.json()
-        setVideos(data)
+        const response = await fetchVideoList({ 
+          limit,
+          userId,
+          status: 'completed'
+        })
+        setVideos(response.videos)
       } catch (error) {
         console.error('Failed to fetch videos:', error)
       } finally {
@@ -34,8 +48,8 @@ export function VideoList({
       }
     }
 
-    fetchVideos()
-  }, [limit, userId])
+    loadVideos()
+  }, [limit])
 
   if (loading) {
     return <VideoListSkeleton count={limit} showThumbnail={showThumbnail} />
@@ -51,23 +65,23 @@ export function VideoList({
 
   return (
     <div className="space-y-4">
-      {videos.map((video) => (
+      {videos.map((video : Video) => (
         <Link
-          key={video.id}
-          href={`/videos/${video.id}`}
+          key={video.video_id}
+          href={`/videos/${video.video_id}?data=${encodeURIComponent(JSON.stringify(video))}`}
           className="flex gap-4 p-2 rounded-lg hover:bg-accent transition-colors"
         >
           {showThumbnail && (
-            <div className="relative flex-shrink-0 w-40 aspect-video rounded-md overflow-hidden">
-              <img
-                src={video.thumbnailUrl}
-                alt={video.title}
-                className="object-cover"
-              />
-              <div className="absolute bottom-1 right-1 bg-black/75 text-white text-xs px-1 rounded">
-                {formatDuration(video.duration)}
-              </div>
+            <div className="relative flex-shrink-0 w-40 aspect-video rounded-md overflow-hidden bg-muted">
+            <img 
+              src={getThumbnailUrl(video.video_id)}
+              alt={video.title}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute bottom-1 right-1 bg-black/75 text-white text-xs px-1 rounded">
+              {formatDuration(video.duration)}
             </div>
+          </div>
           )}
           
           <div className="flex-1 min-w-0">
@@ -78,7 +92,7 @@ export function VideoList({
               </p>
             )}
             <p className="text-xs text-muted-foreground mt-2">
-              {timeAgo(video.createdAt)}
+              Uploaded {formatVideoDate(video.created_at)}
             </p>
           </div>
         </Link>

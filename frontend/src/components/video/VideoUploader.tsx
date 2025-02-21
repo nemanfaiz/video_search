@@ -14,6 +14,7 @@ export function VideoUploader() {
   const { toast } = useToast()
 
   const [file, setFile] = useState<File | null>(null)
+  const [title, setTitle] = useState("")
   const [progress, setProgress] = useState(0)
   const [uploading, setUploading] = useState(false)
 
@@ -57,7 +58,7 @@ export function VideoUploader() {
     // }, 500)
 
     try {
-      await uploadVideo(file, (uploadProgress) => {
+      await uploadVideo(file, title, (uploadProgress) => {
         setProgress(uploadProgress)
       });
   
@@ -136,7 +137,7 @@ export function VideoUploader() {
           <div className="space-y-4">
             <div>
               <Label htmlFor="title">Title</Label>
-              <Input id="title" placeholder="Enter video title" />
+              <Input id="title" placeholder="Enter video title" value={title} onChange={(e) => setTitle(e.target.value)}/>
             </div>
 
             {uploading && (

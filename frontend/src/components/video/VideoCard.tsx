@@ -15,6 +15,7 @@ import { deleteVideo, getVideoForPlayer } from "@/lib/api/videos"
 import { useToast } from "@/hooks/use-toast"
 import { formatDistanceToNow } from "date-fns"
 import { VideoModal } from "./VideoModal"
+import { getThumbnailUrl } from "@/lib/api/videos"
 
 interface VideoCardProps {
   video: VideoMetadata,
@@ -57,16 +58,13 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
   //     setIsModalOpen(true)
   //   }
   // }
+  
   const handleVideoClick = () => {
   if (video.processing_status !== 'processing') {
     const videoData = encodeURIComponent(JSON.stringify(video))
     router.push(`/videos/${video.video_id}?data=${videoData}`)
   }
 }
-  // const videoForModal = {
-  //   title: video.title || "Untitled Video",
-  //   src: `/api/videos/${video.video_id}/stream` // Adjust this to your actual video stream endpoint
-  // }
 
   return (
     <>
@@ -76,7 +74,11 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
           onClick={handleVideoClick}
         >
           <div className="w-full h-full flex items-center justify-center">
-            <Film className="h-10 w-10 text-muted-foreground" />
+            <img
+              src={getThumbnailUrl(video.video_id)}
+              alt={video.title}
+              className="object-cover w-full h-full"
+            />
           </div>
 
           {video.processing_status !== 'processing' && (
