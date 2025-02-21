@@ -7,7 +7,7 @@ export default function VideosPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Videos</h1>
-          <p className="text-muted-foreground">Manage your video library</p>
+          <p className="text-muted-foreground">Click on the video which you like to interact with</p>
         </div>
         <UploadButton />
       </div>

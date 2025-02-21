@@ -3,6 +3,7 @@ import { Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { ChatAPI } from '@/lib/api/chat';
 
 interface Message {
   id: string;
@@ -27,39 +28,20 @@ export function ChatContainer({
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [isConnected, setIsConnected] = React.useState(false);
   const [inputMessage, setInputMessage] = React.useState('');
-  const wsRef = useRef<WebSocket | null>(null);
+  const chatApiRef = useRef<ChatAPI | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    wsRef.current = new WebSocket(
-      `ws://localhost:8000/ws/videos/${videoId}/chat/`
+    chatApiRef.current = new ChatAPI(
+      videoId,
+      (newMessage) => setMessages(prev => [...prev, newMessage]),
+      (status) => setIsConnected(status)
     );
-
-    wsRef.current.onopen = () => {
-      setIsConnected(true);
-    };
-
-    wsRef.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      const newMessage: Message = {
-        id: Math.random().toString(36).substr(2, 9),
-        type: 'bot',
-        message: data.message,
-        confidence: data.confidence,
-        timestamps: data.timestamps || [],
-        createdAt: new Date()
-      };
-      setMessages(prev => [...prev, newMessage]);
-    };
-
-    wsRef.current.onclose = () => {
-      setIsConnected(false);
-    };
+    
+    chatApiRef.current.connect();
 
     return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
+      chatApiRef.current?.disconnect();
     };
   }, [videoId]);
 
@@ -75,22 +57,13 @@ export function ChatContainer({
   }, [messages]);
 
   const sendMessage = () => {
-    if (!inputMessage.trim() || !wsRef.current) return;
+    if (!chatApiRef.current) return;
 
-    const message = {
-      type: 'chat.message',
-      message: inputMessage,
-      timestamp: Math.floor(Date.now() / 1000)
-    };
-
-    wsRef.current.send(JSON.stringify(message));
-    setMessages(prev => [...prev, {
-      id: Math.random().toString(36).substr(2, 9),
-      type: 'user',
-      message: inputMessage,
-      createdAt: new Date()
-    }]);
-    setInputMessage('');
+    const userMessage = chatApiRef.current.sendMessage(inputMessage);
+    if (userMessage) {
+      setMessages(prev => [...prev, userMessage]);
+      setInputMessage('');
+    }
   };
 
   const formatTime = (date: Date) => {
@@ -122,7 +95,7 @@ export function ChatContainer({
         </div>
       </div>
 
-      {/* messages container */}
+      {/* bot container */}
       <div className="flex-1 overflow-hidden">
         <div ref={scrollRef} className="h-full overflow-y-auto">
           
@@ -140,7 +113,7 @@ export function ChatContainer({
                   "max-w-[80%] space-y-1",
                   msg.type === 'user' ? "items-end" : "items-start"
                 )}>
-                  {/* message Content */}
+                  {/* each message content */}
                   <div className={cn(
                     "p-3 rounded-2xl",
                     msg.type === 'user'
@@ -151,7 +124,7 @@ export function ChatContainer({
 
                   </div>
 
-                  {/* confidence */}
+                  {/* message confidence */}
                   <div className="flex flex-col gap-1 px-1">
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-gray-500">
@@ -164,7 +137,7 @@ export function ChatContainer({
                       )}
                     </div>
                     
-                    {/* timestamps */}
+                    {/* message timestamps */}
                     {msg.type === 'bot' && msg.timestamps && msg.timestamps.length > 0 && (
                       <div className="flex flex-wrap gap-2">
                         {msg.timestamps.map((timestamp, index) => (
@@ -186,7 +159,7 @@ export function ChatContainer({
         </div>
       </div>
 
-      {/* text area */}
+      {/* chat bot text area */}
       <div className="flex-none border-t bg-white p-4">
         <div className="flex gap-2">
           <textarea

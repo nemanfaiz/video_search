@@ -1,13 +1,14 @@
 export interface Message {
   id: string;
-  content: string;
-  sender: 'user' | 'bot';
-  timestamp: number;
-  videoId?: string;
+  type: 'user' | 'bot';
+  message: string;
+  timestamps?: number[];
+  confidence?: number;
+  createdAt: Date;
 }
 
-export interface ChatSession {
-  id: string;
-  videoId: string;
-  messages: Message[];
+export interface WebSocketMessage {
+  type: string;
+  message: string;
+  timestamp: number;
 }
