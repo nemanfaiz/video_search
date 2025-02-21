@@ -57,69 +57,6 @@ export function VideoModal({ video, isOpen, onClose }: VideoModalProps) {
     }
   }
 
-  // const handleSeek = async (timestamp: number) => {
-  //   if (videoRef.current) {
-  //     try {
-  //       // First seek to the timestamp
-  //       videoRef.current.currentTime = timestamp
-        
-  //       // Then try to play, handling any interruptions
-  //       try {
-  //         await videoRef.current.play()
-  //       } catch (error: unknown) {
-  //         if (error instanceof Error && error.name === 'AbortError') {
-  //           // If play was interrupted, try playing again after a short delay
-  //           setTimeout(async () => {
-  //             try {
-  //               await videoRef.current?.play()
-  //             } catch (e) {
-  //               console.warn('Second play attempt failed:', e)
-  //             }
-  //           }, 100)
-  //         } else {
-  //           console.warn('Video play failed:', error)
-  //         }
-  //       }
-  //     } catch (error) {
-  //       console.warn('Seek operation failed:', error)
-  //     }
-  //   }
-  // }
-  // const handleSeek = async (timestamp: number) => {
-  //   const video = videoRef.current;
-  //   if (!video) return;
-
-  //   try {
-  //     // Store current playing state
-  //     const wasPlaying = !video.paused;
-      
-  //     // Pause the video
-  //     video.pause();
-      
-  //     // Update the timestamp
-  //     video.currentTime = timestamp;
-
-  //     // Wait for seeking to complete
-  //     await new Promise<void>((resolve) => {
-  //       const handleSeeked = () => {
-  //         video.removeEventListener('seeked', handleSeeked);
-  //         resolve();
-  //       };
-  //       video.addEventListener('seeked', handleSeeked);
-  //     });
-
-  //     // If video was playing before seeking, resume playback
-  //     if (wasPlaying) {
-  //       try {
-  //         await video.play();
-  //       } catch (error) {
-  //         console.warn('Failed to resume playback:', error);
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error('Seek operation failed:', error);
-  //   }
-  // }
   const handleSeek = async (timestamp: number) => {
     const video = videoRef.current;
     if (!video) return;
