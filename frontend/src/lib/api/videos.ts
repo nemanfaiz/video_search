@@ -1,13 +1,26 @@
 import client from './client'
 import axios from 'axios'
-import { UploadVideoResponse, ProcessingStatus, VideosResponse, VideoMetadata, VideoForPlayer } from '@/types/video'
+import {
+  Video,
+  UploadVideoResponse,
+  ProcessingStatus,
+  VideoListResponse,
+  VideoListParams,
+  VideoMetadata,
+  VideoForPlayer,
+  VideosResponse
+} from '@/types/video'
+
 
 export const uploadVideo = async (
   file: File,
+  title: string,
   onProgress?: (progress: number) => void
 ): Promise<UploadVideoResponse> => {
+  
   const formData = new FormData()
   formData.append('video', file)
+  formData.append('title', title)
 
   try {
     const { data } = await client.post<UploadVideoResponse>('/videos/upload', formData, {
@@ -54,9 +67,10 @@ export const getVideos = async (): Promise<VideosResponse> => {
   }
 }
 
+
 export const deleteVideo = async (videoId: string): Promise<void> => {
   try {
-    await client.delete(`/videos/${videoId}`)
+    await client.delete(`/videos/delete/${videoId}`)
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.data?.error) {
       throw new Error(error.response.data.error)
@@ -65,21 +79,6 @@ export const deleteVideo = async (videoId: string): Promise<void> => {
   }
 }
 
-// export const getVideoStream = async (videoId: string): Promise<VideoStreamResponse> => {
-//   try {
-//     const { data } = await client.get<VideoStreamResponse>(`/videos/${videoId}/stream`)
-//     return data
-//   } catch (error) {
-//     if (axios.isAxiosError(error) && error.response?.data?.error) {
-//       throw new Error(error.response.data.error)
-//     }
-//     throw new Error('Failed to get video stream')
-//   }
-// }
-
-// export const getVideoStreamUrl = (videoId: string): string => {
-//   return `/api/videos/${videoId}/stream`
-// }
 
 export const getVideoForPlayer = (video: VideoMetadata): VideoForPlayer => {
   return {
@@ -88,3 +87,43 @@ export const getVideoForPlayer = (video: VideoMetadata): VideoForPlayer => {
     streamUrl: `${client.defaults.baseURL}/videos/stream/${video.video_id}`
   }
 }
+
+export const getThumbnailUrl = (videoId: string): string => {
+  return `${client.defaults.baseURL}/videos/thumbnail/${videoId}`
+}
+
+export const fetchVideoList = async (params: VideoListParams = {}): Promise<VideoListResponse> => {
+  try {
+
+    const queryParams = new URLSearchParams()
+    
+    if (params.limit) {
+      queryParams.append('limit', params.limit.toString())
+    }
+
+    const query = queryParams.toString()
+    const url = `/videos/get${query ? `?${query}` : ''}`
+
+    const { data } = await client.get<VideoListResponse>(url)
+    return data
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.error) {
+      throw new Error(error.response.data.error)
+    }
+    throw new Error('Failed to fetch video list')
+  }
+}
+
+export const fetchVideoById = async (videoId: string): Promise<Video> => {
+  try {
+    const { data } = await client.get<Video>(`/videos/${videoId}`)
+    return data
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.error) {
+      throw new Error(error.response.data.error)
+    }
+    throw new Error('Failed to fetch video')
+  }
+}
+
+

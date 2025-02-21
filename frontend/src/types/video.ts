@@ -1,12 +1,12 @@
 export interface Video {
-  id: string;
+  video_id: string;
   title: string;
   description?: string;
   url: string;
   thumbnailUrl?: string;
   duration: number;
   userId: string;
-  createdAt: string;
+  created_at: string;
   updatedAt: string;
 }
 
@@ -67,4 +67,17 @@ export const getVideoForPlayer = (video: VideoMetadata): VideoForPlayer => {
     title: video.title || 'Untitled Video',
     streamUrl: `/api/videos/stream/${video.video_id}`
   }
+}
+
+export interface VideoListResponse {
+  videos: Video[];
+  total: number;
+  has_more: boolean;
+}
+
+export interface VideoListParams {
+  limit?: number;
+  offset?: number;
+  userId?: string;
+  status?: 'processing' | 'completed' | 'failed';
 }
