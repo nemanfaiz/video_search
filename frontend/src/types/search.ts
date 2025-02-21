@@ -15,8 +15,13 @@ export interface SearchResult {
   timestamp: number
   text: string
   confidence: number
-  question_type: string
-  formattedTime: string
+  question_type?: string
+  formattedTime?: string
+}
+
+export interface SearchRequest {
+  video_id: string;
+  query: string;
 }
 
 export type SearchResponse = SearchResult[] | { error: string }

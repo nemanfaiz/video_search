@@ -13,6 +13,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { ChatContainer } from "@/components/chat/ChatContainer"
 import WebSocketTest from '@/components/chat/WebSocketTest';
+import { searchVideo } from "@/lib/api/search"
+import { useToast } from "@/hooks/use-toast"
 
 interface VideoWithSearchProps {
   video: VideoForPlayer
@@ -20,6 +22,8 @@ interface VideoWithSearchProps {
 
 export function VideoWithSearch({ video }: VideoWithSearchProps) {
   const router = useRouter()
+  const { toast } = useToast()
+
   const [activeTab, setActiveTab] = useState<'search' | 'chat'>('search')
   const [isSearching, setIsSearching] = useState(false)
   const [searchResult, setSearchResult] = useState<SearchResponse | null>(null)
@@ -29,40 +33,22 @@ export function VideoWithSearch({ video }: VideoWithSearchProps) {
   const [isChatOpen, setIsChatOpen] = useState(false)
 
 
-    const handleSearch = async (query: string) => {
-        setIsSearching(true)
-        try {
-        const response = await fetch('http://localhost:8000/api/videos/search', {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-            video_id: video.video_id,
-            query: query.trim()
-            }),
-        })
-
-        const data = await response.json()
-        // setSearchResult(data)
-        console.log("data", data["results"])
-        const dataArray = data["results"]
-
-        // parse the data to formatted time and sort by confidence
-        const processedResults = Array.isArray(dataArray) ? dataArray.map(result => ({
-            ...result,
-            formattedTime: new Date(result.timestamp * 1000).toISOString().substr(14, 5),
-            confidence: Math.round(result.confidence * 100)
-        })).sort((a, b) => b.confidence - a.confidence) : []
-        
-        setSearchResult(processedResults)
-
-        } catch (error) {
-          setSearchResult({ error: 'Failed to search video content' })
-        } finally {
-          setIsSearching(false)
-        }
+  const handleSearch = async (query: string) => {
+    setIsSearching(true)
+    try {
+      const results = await searchVideo(video.video_id, query)
+      setSearchResult(results)
+    } catch (error) {
+      toast({
+        title: "Search failed",
+        description: error instanceof Error ? error.message : "Failed to search video content",
+        variant: "destructive",
+      })
+      setSearchResult(null)
+    } finally {
+      setIsSearching(false)
     }
+  }
 
   const handleSeek = async (timestamp: number) => {
     if (!videoRef.current) return
@@ -72,6 +58,11 @@ export function VideoWithSearch({ video }: VideoWithSearchProps) {
       if (wasPlaying) await videoRef.current.play()
     } catch (error) {
       console.error('Seek failed:', error)
+      toast({
+        title: "Seek failed",
+        description: "Failed to seek to the specified timestamp",
+        variant: "destructive",
+      })
     }
   }
 
