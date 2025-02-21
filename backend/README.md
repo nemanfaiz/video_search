@@ -37,45 +37,12 @@ A Django-based backend service for video processing, transcription, and interact
 - **Cache**: Django's cache framework
 - **File Processing**: python-magic for MIME validation
 
-## Installation
 
-1. Navigate to backend of video_search repo:
-```bash
-cd backend
-# pwd = video_search/backend
-```
-
-2. Create and activate a virtual environment:
-```bash
-python -m venv .venv
-source venv/bin/activate
-```
-
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-4. Set up environment variables in `.env`:
-```env
-DJANGO_SECRET_KEY='django-insecure-gby)e66p&k!2@u!qagztv#!mkfeg&r*i4v2jyi*-pnr-5jgoo+'
-DEBUG=True
-OPENAI_API_KEY=your_openai_api_key
-```
-
-5. Run migrations:
-```bash
-python manage.py migrate
-```
-
-6. Start the development server:
-```bash
-uvicorn core.asgi:application --reload
-```
-
-## API Endpoints
+## API Documentation
 
 ### Video Management
+
+#### REST Endpoints
 - `POST /api/videos/upload` - Upload a new video
 - `GET /api/videos` - List all videos
 - `GET /api/videos/<video_id>` - Stream video content
@@ -83,10 +50,44 @@ uvicorn core.asgi:application --reload
 - `GET /api/videos/<video_id>/thumbnail` - Get video thumbnail
 - `GET /api/videos/<video_id>/status` - Get processing status
 
+
+
 ### Chat Interface
-- WebSocket: `ws://domain/ws/chat/<video_id>`
   - Supports real-time chat interaction with video content
   - Provides AI-powered responses based on video context
+
+  - #### Websocket Endpoint
+    - WebSocket Endpoint: `ws://domain/ws/chat/<video_id>`
+
+
+## Architecture Overview
+
+### Backend Architecture
+
+#### Django Apps
+
+- `videos`: Video processing and management
+- `chat`: WebSocket chat handling
+
+#### Services
+
+- `VideoService`: Video processing pipeline
+- `TranscriptService`: AI transcription
+- `OpenAIService`: Chat integration
+- `CacheService`: Data caching
+
+#### Core Components
+
+- WebSocket consumers for real-time chat
+- Video processing pipeline
+- Search implementation
+- File validation system
+
+### Data Flow
+
+1. Video Upload → Processing → Transcription
+2. Search Query → NLP Analysis → Semantic Search
+3. Chat Message → AI Processing → Real-time Response
 
 ## Directory Structure
 
